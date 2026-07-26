@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Workflow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <alerts>
+        <fullName>Out_of_Stock_Item_Alert</fullName>
+        <description>Out of Stock Item Alert</description>
+        <protected>false</protected>
+        <recipients>
+            <field>NotificationRecipientEmail__c</field>
+            <type>email</type>
+        </recipients>
+        <senderType>CurrentUser</senderType>
+        <template>unfiled$public/Out_of_Stock_Item_Notification</template>
+    </alerts>
+</Workflow>

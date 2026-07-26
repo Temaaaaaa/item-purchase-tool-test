@@ -7,6 +7,9 @@
         <locationY>0</locationY>
         <actionName>customNotificationAction</actionName>
         <actionType>customNotificationAction</actionType>
+        <connector>
+            <targetReference>Send_Out_of_Stock_Email_Alert</targetReference>
+        </connector>
         <flowTransactionModel>CurrentTransaction</flowTransactionModel>
         <inputParameters>
             <name>customNotifTypeId</name>
@@ -43,6 +46,24 @@
             </value>
         </inputParameters>
         <nameSegment>customNotificationAction</nameSegment>
+        <offset>0</offset>
+    </actionCalls>
+    <actionCalls>
+        <name>Send_Out_of_Stock_Email_Alert_Action</name>
+        <label>Send Out of Stock Email Alert</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <actionName>Item__c.Out_of_Stock_Item_Alert</actionName>
+        <actionType>emailAlert</actionType>
+        <flowTransactionModel>CurrentTransaction</flowTransactionModel>
+        <inputParameters>
+            <name>SObjectRowId</name>
+            <value>
+                <elementReference>$Record.Id</elementReference>
+                <inputConfiguratorMode>Resource</inputConfiguratorMode>
+            </value>
+        </inputParameters>
+        <nameSegment>Item__c.Out_of_Stock_Item_Alert</nameSegment>
         <offset>0</offset>
     </actionCalls>
     <apiVersion>67.0</apiVersion>
@@ -139,6 +160,22 @@
         <object>CustomNotificationType</object>
         <storeOutputAutomatically>true</storeOutputAutomatically>
     </recordLookups>
+    <recordUpdates>
+        <name>Send_Out_of_Stock_Email_Alert</name>
+        <label>Set Notification Recipient Email</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <connector>
+            <targetReference>Send_Out_of_Stock_Email_Alert_Action</targetReference>
+        </connector>
+        <inputAssignments>
+            <field>NotificationRecipientEmail__c</field>
+            <value>
+                <elementReference>NotificationRecipientEmail</elementReference>
+            </value>
+        </inputAssignments>
+        <inputReference>$Record</inputReference>
+    </recordUpdates>
     <start>
         <locationX>0</locationX>
         <locationY>0</locationY>

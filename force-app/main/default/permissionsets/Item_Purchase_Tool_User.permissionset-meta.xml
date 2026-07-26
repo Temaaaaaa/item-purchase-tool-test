@@ -33,6 +33,11 @@
     </fieldPermissions>
     <fieldPermissions>
         <editable>true</editable>
+        <field>Item__c.NotificationRecipientEmail__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
         <field>Item__c.Price__c</field>
         <readable>true</readable>
     </fieldPermissions>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>NotificationRecipientEmail__c</fullName>
+    <description>Technical field populated from Inventory Notification Settings for out-of-stock email alerts.</description>
+    <externalId>false</externalId>
+    <label>Notification Recipient Email</label>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Email</type>
+    <unique>false</unique>
+</CustomField>
