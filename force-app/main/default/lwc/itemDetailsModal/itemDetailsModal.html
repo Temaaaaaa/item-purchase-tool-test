@@ -1,0 +1,102 @@
+<template>
+  <lightning-modal-header
+      label="Item Details"
+  ></lightning-modal-header>
+
+  <lightning-modal-body>
+      <template lwc:if={item}>
+          <div class="details-layout">
+              <section class="image-section">
+                  <template lwc:if={item.Image__c}>
+                      <img
+                          src={item.Image__c}
+                          alt={item.Name}
+                          class="item-image"
+                      />
+                  </template>
+
+                  <template lwc:else>
+                      <div class="image-placeholder">
+                          <lightning-icon
+                              icon-name="utility:image"
+                              alternative-text="No image"
+                              size="large"
+                          ></lightning-icon>
+
+                          <span>No image available</span>
+                      </div>
+                  </template>
+
+                  <template
+                      lwc:if={item.ImagePhotographer__c}
+                  >
+                      <div class="photo-attribution">
+                          Photo by
+
+                          <a
+                              href={item.ImagePhotographerUrl__c}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                          >
+                              {item.ImagePhotographer__c}
+                          </a>
+
+                          on
+
+                          <a
+                              href={item.ImageSourceUrl__c}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                          >
+                              Unsplash
+                          </a>
+                      </div>
+                  </template>
+              </section>
+
+              <section class="record-section">
+                  <lightning-record-view-form
+                      record-id={item.Id}
+                      object-api-name="Item__c"
+                  >
+                      <div class="fields-grid">
+                          <lightning-output-field
+                              field-name="Name"
+                          ></lightning-output-field>
+
+                          <lightning-output-field
+                              field-name="Price__c"
+                          ></lightning-output-field>
+
+                          <lightning-output-field
+                              field-name="Type__c"
+                          ></lightning-output-field>
+
+                          <lightning-output-field
+                              field-name="Family__c"
+                          ></lightning-output-field>
+
+                          <lightning-output-field
+                              field-name="AvailableQuantity__c"
+                          ></lightning-output-field>
+                      </div>
+
+                      <div class="description-field">
+                          <lightning-output-field
+                              field-name="Description__c"
+                          ></lightning-output-field>
+                      </div>
+                  </lightning-record-view-form>
+              </section>
+          </div>
+      </template>
+  </lightning-modal-body>
+
+  <lightning-modal-footer>
+      <lightning-button
+          label="Close"
+          variant="neutral"
+          onclick={handleClose}
+      ></lightning-button>
+  </lightning-modal-footer>
+</template>

@@ -1,17 +1,37 @@
-import { LightningElement, wire } from "lwc";
+import { api, LightningElement, wire } from "lwc";
 import CURRENCY from "@salesforce/i18n/currency";
 import { ShowToastEvent } from "lightning/platformShowToastEvent";
 import { refreshApex } from "@salesforce/apex";
-import isCurrentUserManager from "@salesforce/apex/ItemCatalogueController.isCurrentUserManager";
-import ItemCreateModal from "c/itemCreateModal";
+import { getFieldValue, getRecord } from "lightning/uiRecordApi";
+import { NavigationMixin } from "lightning/navigation";
+import { CloseActionScreenEvent } from "lightning/actions";
+
+import ACCOUNT_NAME_FIELD from "@salesforce/schema/Account.Name";
+import ACCOUNT_NUMBER_FIELD from "@salesforce/schema/Account.AccountNumber";
+import ACCOUNT_INDUSTRY_FIELD from "@salesforce/schema/Account.Industry";
 
 import getItems from "@salesforce/apex/ItemCatalogueController.getItems";
 import getFilterOptions from "@salesforce/apex/ItemCatalogueController.getFilterOptions";
+import isCurrentUserManager from "@salesforce/apex/ItemCatalogueController.isCurrentUserManager";
 import createPurchase from "@salesforce/apex/PurchaseCheckoutController.createPurchase";
 
-export default class ItemPurchaseTool extends LightningElement {
+import ItemCreateModal from "c/itemCreateModal";
+import ItemDetailsModal from "c/itemDetailsModal";
+import CartModal from "c/cartModal";
+
+const ACCOUNT_FIELDS = [
+    ACCOUNT_NAME_FIELD,
+    ACCOUNT_NUMBER_FIELD,
+    ACCOUNT_INDUSTRY_FIELD
+];
+
+export default class ItemPurchaseTool extends NavigationMixin(
+    LightningElement
+) {
     currencyCode = CURRENCY;
-    isManager = false;
+
+    _recordId;
+    accountRecord;
 
     searchTerm = "";
     selectedType = "";
@@ -24,10 +44,38 @@ export default class ItemPurchaseTool extends LightningElement {
     typeOptions = [{ label: "All Types", value: "" }];
     familyOptions = [{ label: "All Families", value: "" }];
 
+    isManager = false;
     isLoading = true;
     isCheckingOut = false;
 
     wiredItemsResult;
+
+    @api
+    get recordId() {
+        return this._recordId;
+    }
+
+    set recordId(value) {
+        this._recordId = value;
+
+        if (value) {
+            this.selectedAccountId = value;
+        }
+    }
+
+    @wire(getRecord, {
+        recordId: "$recordId",
+        fields: ACCOUNT_FIELDS
+    })
+    wiredAccount({ data, error }) {
+        if (data) {
+            this.accountRecord = data;
+            this.selectedAccountId = this.recordId;
+        } else if (error) {
+            this.accountRecord = null;
+            this.showError("Unable to load account", error);
+        }
+    }
 
     @wire(getFilterOptions)
     wiredFilterOptions({ data, error }) {
@@ -54,15 +102,15 @@ export default class ItemPurchaseTool extends LightningElement {
 
     @wire(isCurrentUserManager)
     wiredManagerStatus({ data, error }) {
-    if (data !== undefined) {
-        this.isManager = data;
-    } else if (error) {
-        this.showError(
-            "Unable to determine manager access",
-            error
-        );
+        if (data !== undefined) {
+            this.isManager = data;
+        } else if (error) {
+            this.showError(
+                "Unable to determine manager access",
+                error
+            );
+        }
     }
-}
 
     @wire(getItems, {
         searchTerm: "$searchTerm",
@@ -84,12 +132,43 @@ export default class ItemPurchaseTool extends LightningElement {
         }
     }
 
-    get hasItems() {
-        return this.items.length > 0;
+    get hasAccountContext() {
+        return Boolean(this.recordId);
     }
 
-    get hasCartItems() {
-        return this.cartItems.length > 0;
+    get accountName() {
+        return (
+            getFieldValue(
+                this.accountRecord,
+                ACCOUNT_NAME_FIELD
+            ) || "Not specified"
+        );
+    }
+
+    get accountNumber() {
+        return (
+            getFieldValue(
+                this.accountRecord,
+                ACCOUNT_NUMBER_FIELD
+            ) || "Not specified"
+        );
+    }
+
+    get accountIndustry() {
+        return (
+            getFieldValue(
+                this.accountRecord,
+                ACCOUNT_INDUSTRY_FIELD
+            ) || "Not specified"
+        );
+    }
+
+    get listedItemCount() {
+        return this.items.length;
+    }
+
+    get hasItems() {
+        return this.items.length > 0;
     }
 
     get totalItems() {
@@ -99,19 +178,12 @@ export default class ItemPurchaseTool extends LightningElement {
         );
     }
 
-    get grandTotal() {
-        return this.cartItems.reduce(
-            (total, line) => total + line.lineTotal,
-            0
-        );
+    get cartButtonLabel() {
+        return `Cart (${this.totalItems})`;
     }
 
-    get checkoutDisabled() {
-        return (
-            !this.selectedAccountId ||
-            !this.hasCartItems ||
-            this.isCheckingOut
-        );
+    get cartButtonDisabled() {
+        return this.isCheckingOut;
     }
 
     handleSearchChange(event) {
@@ -130,7 +202,8 @@ export default class ItemPurchaseTool extends LightningElement {
     }
 
     handleAccountChange(event) {
-        this.selectedAccountId = event.detail.recordId || null;
+        this.selectedAccountId =
+            event.detail.recordId || null;
     }
 
     handleAddToCart(event) {
@@ -149,7 +222,10 @@ export default class ItemPurchaseTool extends LightningElement {
         );
 
         if (existingLine) {
-            if (existingLine.quantity >= item.AvailableQuantity__c) {
+            if (
+                existingLine.quantity >=
+                item.AvailableQuantity__c
+            ) {
                 this.showToast(
                     "Insufficient Stock",
                     `Available quantity: ${item.AvailableQuantity__c}`,
@@ -161,74 +237,64 @@ export default class ItemPurchaseTool extends LightningElement {
 
             this.cartItems = this.cartItems.map((line) =>
                 line.itemId === itemId
-                    ? this.createCartLine(item, line.quantity + 1)
+                    ? this.createCartLine(
+                          item,
+                          line.quantity + 1
+                      )
                     : line
             );
+        } else {
+            this.cartItems = [
+                ...this.cartItems,
+                this.createCartLine(item, 1)
+            ];
+        }
 
+        this.showToast(
+            "Item Added",
+            `${item.Name} was added to the cart.`,
+            "success"
+        );
+    }
+
+    async handleOpenCart() {
+        const result = await CartModal.open({
+            size: "large",
+            description:
+                "Review the selected items and complete checkout.",
+            cartItems: this.cartItems,
+            currencyCode: this.currencyCode
+        });
+
+        if (!result) {
             return;
         }
 
-        this.cartItems = [
-            ...this.cartItems,
-            this.createCartLine(item, 1)
-        ];
+        this.cartItems = result.lines || [];
+
+        if (result.action === "checkout") {
+            await this.checkoutCart();
+        }
     }
 
-    handleQuantityChange(event) {
-        const itemId = event.target.dataset.id;
-        const quantity = Number(event.target.value);
-
-        event.target.setCustomValidity("");
-
-        if (!Number.isInteger(quantity) || quantity < 1) {
-            event.target.setCustomValidity(
-                "Quantity must be a whole number greater than zero."
+    async checkoutCart() {
+        if (!this.selectedAccountId) {
+            this.showToast(
+                "Client Required",
+                "Select a client before checkout.",
+                "error"
             );
 
-            event.target.reportValidity();
             return;
         }
 
-        const currentLine = this.cartItems.find(
-            (line) => line.itemId === itemId
-        );
-
-        if (!currentLine) {
-            return;
-        }
-
-        if (quantity > currentLine.availableQuantity) {
-            event.target.setCustomValidity(
-                `Maximum available quantity is ${currentLine.availableQuantity}.`
+        if (this.cartItems.length === 0) {
+            this.showToast(
+                "Empty Cart",
+                "Add at least one item to the cart.",
+                "warning"
             );
 
-            event.target.reportValidity();
-            return;
-        }
-
-        event.target.reportValidity();
-
-        this.cartItems = this.cartItems.map((line) =>
-            line.itemId === itemId
-                ? {
-                      ...line,
-                      quantity,
-                      lineTotal: line.price * quantity
-                  }
-                : line
-        );
-    }
-
-    handleRemoveFromCart(event) {
-        const itemId = event.currentTarget.dataset.id;
-
-        this.cartItems = this.cartItems.filter(
-            (line) => line.itemId !== itemId
-        );
-    }
-
-    async handleCheckout() {
-        if (this.checkoutDisabled) {
             return;
         }
 
@@ -249,54 +315,112 @@ export default class ItemPurchaseTool extends LightningElement {
 
             await refreshApex(this.wiredItemsResult);
 
-            const formattedTotal = new Intl.NumberFormat(undefined, {
-                style: "currency",
-                currency: this.currencyCode
-            }).format(result.grandTotal);
+            const formattedTotal = new Intl.NumberFormat(
+                undefined,
+                {
+                    style: "currency",
+                    currency: this.currencyCode
+                }
+            ).format(result.grandTotal);
 
             this.showToast(
                 "Purchase Created",
                 `${result.purchaseName}: ${result.totalItems} item(s), total ${formattedTotal}.`,
                 "success"
             );
+
+            if (this.hasAccountContext) {
+                this.dispatchEvent(
+                    new CloseActionScreenEvent()
+                );
+
+                setTimeout(() => {
+                    this.navigateToPurchase(
+                        result.purchaseId
+                    );
+                }, 0);
+            } else {
+                this.navigateToPurchase(
+                    result.purchaseId
+                );
+            }
         } catch (error) {
-            this.showError("Unable to create purchase", error);
+            this.showError(
+                "Unable to create purchase",
+                error
+            );
         } finally {
             this.isCheckingOut = false;
         }
     }
 
+    navigateToPurchase(purchaseId) {
+        this[NavigationMixin.Navigate]({
+            type: "standard__recordPage",
+            attributes: {
+                recordId: purchaseId,
+                objectApiName: "Purchase__c",
+                actionName: "view"
+            }
+        });
+    }
+
+    async handleViewDetails(event) {
+        const itemId = event.currentTarget.dataset.id;
+
+        const selectedItem = this.items.find(
+            (item) => item.Id === itemId
+        );
+
+        if (!selectedItem) {
+            this.showToast(
+                "Item Not Found",
+                "The selected item could not be loaded.",
+                "error"
+            );
+
+            return;
+        }
+
+        await ItemDetailsModal.open({
+            size: "medium",
+            description: `Details for ${selectedItem.Name}`,
+            item: selectedItem
+        });
+    }
+
     async handleNewItem() {
-      const result = await ItemCreateModal.open({
-          size: "large",
-          description: "Create a catalogue item",
-          typeOptions: this.typeOptions.filter(
-              (option) => option.value
-          ),
-          familyOptions: this.familyOptions.filter(
-              (option) => option.value
-          )
-      });
+        const result = await ItemCreateModal.open({
+            size: "large",
+            description: "Create a catalogue item",
+            typeOptions: this.typeOptions.filter(
+                (option) => option.value
+            ),
+            familyOptions: this.familyOptions.filter(
+                (option) => option.value
+            )
+        });
 
-      if (!result?.created) {
-          return;
-      }
+        if (!result?.created) {
+            return;
+        }
 
-      await refreshApex(this.wiredItemsResult);
+        await refreshApex(this.wiredItemsResult);
 
-      this.showToast(
-          "Item Created",
-          "The item was created successfully.",
-          "success"
-      );
-  }
+        this.showToast(
+            "Item Created",
+            "The item was created successfully.",
+            "success"
+        );
+    }
 
     createCartLine(item, quantity) {
         return {
             itemId: item.Id,
             name: item.Name,
             price: item.Price__c,
-            availableQuantity: item.AvailableQuantity__c,
+            availableQuantity:
+                item.AvailableQuantity__c,
             quantity,
             lineTotal: item.Price__c * quantity
         };

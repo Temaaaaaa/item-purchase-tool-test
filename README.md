@@ -1,162 +1,309 @@
 # Item Purchase Tool
 
-Item Purchase Tool is a one-page Salesforce application for browsing catalogue items, creating purchases, managing inventory, and sending notifications when an item goes out of stock.
+A one-page Salesforce application for browsing catalogue items, managing a cart, creating purchases, updating inventory, and notifying inventory managers when an item goes out of stock.
 
-The application is built with Lightning Web Components, Apex, record-triggered flows, custom objects, a hierarchy custom setting, Salesforce notifications, and an Unsplash integration.
+The application is built with Lightning Web Components, Apex, Record-Triggered Flows, Custom Objects, Salesforce notifications, and the Unsplash API.
 
-## Features
+## Current Release
 
-- Search and filter catalogue items by type and family.
-- Display item images, descriptions, prices, and available quantities.
-- Add items to a cart and change their quantities.
-- Select an Account as the purchase client.
-- Create a Purchase with related Purchase Line records.
-- Validate stock and prevent overselling.
-- Update item inventory inside a secure Apex transaction.
-- Recalculate purchase totals when purchase lines are created, updated, or deleted.
-- Send an email and a Salesforce custom notification when stock reaches zero.
-- Allow managers to create catalogue items from the application.
-- Search and select item photos through the Unsplash API.
-- Store and display the required Unsplash photo attribution.
+**Version:** 1.1
+**Status:** Completed
+**Package type:** First-generation unmanaged package
 
-## User Stories
+**GitHub repository:**
+https://github.com/Temaaaaaa/item-purchase-tool-test
 
-### Catalogue and filtering
+**Installation URL:**
+https://login.salesforce.com/packaging/installPackage.apexp?p0=04tg7000000GSum
 
-As a user, I want to search and filter available items so that I can quickly find a product.
+**Package Version ID:** `04tg7000000GSum`
 
-The catalogue:
+---
 
-- returns only items with available stock;
-- supports text search;
-- supports Type and Family filters;
-- displays the current price and available quantity.
+## Release History
 
-Implementation:
+| Version | Status | Package Version ID | Description |
+|---|---|---|---|
+| 1.0 | Initial release | `04tg7000000GStB` | Base catalogue, checkout, inventory automation, manager item creation, and Unsplash integration |
+| 1.1 | Current release | `04tg7000000GSum` | Full Account Quick Action workflow, Account context, item details modal, cart modal, automatic Unsplash search, and Purchase navigation |
 
-- `itemPurchaseTool`
-- `ItemCatalogueController`
-- `ItemCatalogueFilterOptions`
+### Version 1.0
 
-### Purchase creation
+Version 1.0 introduced the initial working application.
 
-As a user, I want to add items to a cart and create a purchase for a selected client.
+It included:
 
-The checkout process:
+- the Item, Purchase, and Purchase Line data model;
+- a searchable and filterable item catalogue;
+- cart and checkout logic;
+- secure stock validation;
+- Purchase and Purchase Line creation;
+- automatic inventory updates;
+- Record-Triggered Flows for Purchase totals;
+- out-of-stock Bell and email notifications;
+- manager-only item creation;
+- Unsplash image search;
+- photo attribution;
+- Apex Unit Tests;
+- a Permission Set;
+- a Lightning application and tab;
+- the first unmanaged package.
 
-- requires an Account;
-- requires at least one cart line;
-- validates quantities;
-- prevents quantities greater than available stock;
-- aggregates duplicate item lines;
-- creates one Purchase and its Purchase Line records;
-- decreases stock;
-- returns the created purchase name and totals.
+In this version, the application was mainly opened through its standalone Lightning application. The cart was displayed directly on the main page, and the user selected the client manually.
 
-Implementation:
+### Version 1.1
 
-- `itemPurchaseTool`
-- `PurchaseCheckoutController`
-- `PurchaseCheckoutLineRequest`
-- `PurchaseCheckoutResult`
+Version 1.1 completes the Account-based workflow required by the task.
 
-### Manager item creation
+Changes in version 1.1:
 
-As a manager, I want to create catalogue items without leaving the application.
+- added an Account Lightning Quick Action;
+- added the Quick Action to the Account layout;
+- the application now opens in a modal from an Account record;
+- the current Account is automatically used as the Purchase client;
+- Account Name, Account Number, and Industry are displayed;
+- added the number of currently listed catalogue items;
+- added an Item Details modal;
+- added a Cart button with the selected item count;
+- moved the cart into a modal window;
+- cart lines are displayed in table form;
+- quantity can be changed directly in the cart modal;
+- cart lines can be removed before checkout;
+- successful checkout redirects the user to the standard Purchase record page;
+- Unsplash search now automatically uses the Item Name;
+- improved responsive styling for the Account Quick Action modal;
+- added `cartModal` and `itemDetailsModal` Lightning Web Components.
 
-The manager can:
+Version 1.1 is the current recommended version.
 
-- enter item information;
-- select Type and Family values;
-- enter price and available quantity;
-- search Unsplash for a photo;
-- select a photo;
-- create the item;
-- immediately see the item in the catalogue.
+---
 
-The `New Item` button is shown only when the current user has `User.IsManager__c = true`. The same permission is validated again in Apex.
+## Main Features
 
-Implementation:
+### Account Quick Action
 
-- `itemCreateModal`
-- `ItemManagementController`
-- `ItemCreateRequest`
-- `UnsplashPhotoOption`
+The application can be opened directly from an Account record through the `Item Purchase Tool` Quick Action.
 
-### Inventory automation
+When opened from Account, it automatically receives the Account ID and displays:
 
-As an inventory manager, I want to receive a notification when an item becomes unavailable.
+- Account Name;
+- Account Number;
+- Industry.
 
-When `Item__c.AvailableQuantity__c` changes to zero, Salesforce:
+The current Account is automatically used as the client during checkout.
 
-- sends a custom notification;
-- sends an email alert;
-- uses configurable notification recipients.
+The application can also still be opened from its standalone Lightning tab. In that mode, the user can select an Account manually.
 
-Implementation:
+### Item Catalogue
 
-- `Item_Out_of_Stock_Notification`
-- `Item_Out_of_Stock`
-- `Out_of_Stock_Item_Alert`
-- `Out_of_Stock_Item_Notification`
-- `InventoryNotificationSettings__c`
+Users can:
 
-### Purchase total calculation
+- view available catalogue items;
+- search by item name and description;
+- filter by Type;
+- filter by Family;
+- see the number of listed items;
+- view item images;
+- see prices and available quantities;
+- open item details;
+- add items to the cart.
 
-As a user, I want purchase totals to remain correct when purchase lines change.
+Only items with `AvailableQuantity__c > 0` are returned by the catalogue.
 
-The flows recalculate:
+### Item Details
 
-- total item quantity;
-- grand total.
+Each item tile contains a `Details` button.
 
-Implementation:
+The Item Details modal displays:
 
-- `Recalculate_Purchase_Totals_On_Line_Change`
-- `Recalculate_Purchase_Totals_On_Line_Delete`
+- item image;
+- name;
+- description;
+- price;
+- Type;
+- Family;
+- available quantity;
+- Unsplash attribution.
 
-## Application Architecture
+The record fields are displayed using Lightning Data Service and `lightning-record-view-form`.
 
-| Layer | Components |
+### Cart
+
+The `Cart` button displays the current total quantity:
+
+```text
+Cart (3)
+```
+
+The cart opens in a modal window and displays selected items in table form.
+
+Users can:
+
+- review item names;
+- see unit prices;
+- change quantities;
+- see available stock;
+- see line totals;
+- remove cart lines;
+- see Total Items;
+- see Grand Total;
+- complete checkout.
+
+### Checkout
+
+Checkout is handled by Apex as a single transaction.
+
+The controller:
+
+1. validates the selected Account;
+2. validates that the cart is not empty;
+3. validates all quantities;
+4. aggregates duplicate item lines;
+5. queries the required Items;
+6. locks Item records with `FOR UPDATE`;
+7. validates prices and available stock;
+8. creates the Purchase;
+9. creates Purchase Line records;
+10. decreases Item stock;
+11. saves Purchase totals;
+12. rolls back all changes if any step fails.
+
+After successful checkout, the application navigates to the standard page of the newly created Purchase record.
+
+### Manager Item Creation
+
+Users with:
+
+```text
+User.IsManager__c = true
+```
+
+can see the `New Item` button.
+
+A manager can:
+
+- enter an item name;
+- enter a description;
+- select Type and Family;
+- enter a price;
+- enter an available quantity;
+- search Unsplash using the Item Name;
+- select an image;
+- create the Item;
+- immediately see it in the catalogue.
+
+Manager access is checked both in the LWC and in Apex.
+
+### Unsplash Integration
+
+Item images are loaded through the Unsplash API.
+
+The integration uses:
+
+- Named Credential `Unsplash_API`;
+- External Credential `Unsplash_API_External_Credential`;
+- Named Principal `UnsplashPrincipal`;
+- Trusted URL `Unsplash_Images`;
+- Trusted URL `Unsplash_Plus_Images`.
+
+The Unsplash Access Key is not stored in Apex, JavaScript, or GitHub.
+
+Apex callouts use:
+
+```text
+callout:Unsplash_API
+```
+
+When a photo is selected, the application stores:
+
+- image URL;
+- photographer name;
+- photographer profile URL;
+- original photo URL.
+
+The catalogue displays attribution in this form:
+
+```text
+Photo by [Photographer] on Unsplash
+```
+
+### Purchase Total Automation
+
+Purchase totals are recalculated by Record-Triggered Flows.
+
+The following fields are updated:
+
+```text
+Purchase__c.TotalItems__c
+Purchase__c.GrandTotal__c
+```
+
+Flows:
+
+```text
+Recalculate_Purchase_Totals_On_Line_Change
+Recalculate_Purchase_Totals_On_Line_Delete
+```
+
+The totals remain correct when Purchase Line records are created, updated, or deleted.
+
+### Out-of-Stock Notifications
+
+The `Item_Out_of_Stock_Notification` Flow runs after an Item update when:
+
+```text
+AvailableQuantity__c = 0
+```
+
+and the field value has changed.
+
+The Flow sends:
+
+- a Salesforce Bell Notification;
+- an email notification.
+
+Notification configuration is stored in the Hierarchy Custom Setting:
+
+```text
+InventoryNotificationSettings__c
+```
+
+Fields:
+
+```text
+Recipient_User__c
+Recipient_Email__c
+```
+
+`Recipient_User__c` stores a Salesforce User ID in a Text field because Hierarchy Custom Settings do not support Lookup relationships.
+
+---
+
+## Architecture
+
+| Layer | Implementation |
 |---|---|
 | User interface | Lightning Web Components |
-| Business logic | Apex controllers |
-| Data model | Custom objects and fields |
-| Automation | Record-triggered flows |
-| Security | Permission Set, user-mode Apex, manager validation |
+| Business logic | Apex |
+| Data model | Custom Objects and Custom Fields |
+| Automation | Record-Triggered Flows |
+| Security | Permission Set, sharing, user-mode access |
 | Integration | Named Credential and External Credential |
-| Notifications | Custom notification, email alert, email template |
-| Distribution | First-generation unmanaged package |
+| Notifications | Custom Notification, Email Alert, Email Template |
+| Distribution | Unmanaged Package |
+
+---
 
 ## Lightning Web Components
 
-### `itemPurchaseTool`
+| Component | Purpose |
+|---|---|
+| `itemPurchaseTool` | Main catalogue and purchase application |
+| `itemCreateModal` | Manager-only Item creation and Unsplash search |
+| `itemDetailsModal` | Item details modal |
+| `cartModal` | Cart table, quantity management, and checkout |
 
-Main application component.
-
-Responsibilities:
-
-- load catalogue items;
-- load filter options;
-- search and filter items;
-- manage the cart;
-- select a client Account;
-- create purchases;
-- open the item creation modal;
-- refresh the catalogue after changes.
-
-### `itemCreateModal`
-
-Manager-only item creation modal.
-
-Responsibilities:
-
-- collect item information;
-- validate form fields;
-- search Unsplash photos;
-- display photo attribution;
-- select a photo;
-- call Apex to create the item.
+---
 
 ## Apex Classes
 
@@ -164,145 +311,106 @@ Responsibilities:
 
 | Class | Purpose |
 |---|---|
-| `ItemCatalogueController` | Loads catalogue items, filter options, and manager status |
-| `ItemCatalogueFilterOptions` | DTO for Type and Family options |
-| `ItemCatalogueControllerTest` | Unit tests for catalogue logic |
+| `ItemCatalogueController` | Loads catalogue items, filters, and manager status |
+| `ItemCatalogueFilterOptions` | Filter options DTO |
+| `ItemCatalogueControllerTest` | Catalogue Unit Tests |
 
 ### Checkout
 
 | Class | Purpose |
 |---|---|
-| `PurchaseCheckoutController` | Creates purchases and updates inventory |
-| `PurchaseCheckoutLineRequest` | Checkout line request DTO |
+| `PurchaseCheckoutController` | Creates Purchases and updates stock |
+| `PurchaseCheckoutLineRequest` | Checkout request DTO |
 | `PurchaseCheckoutResult` | Checkout result DTO |
-| `PurchaseCheckoutControllerTest` | Unit tests for checkout logic |
+| `PurchaseCheckoutControllerTest` | Checkout Unit Tests |
 
-### Item management
+### Item Management
 
 | Class | Purpose |
 |---|---|
-| `ItemManagementController` | Searches Unsplash and creates items |
+| `ItemManagementController` | Searches Unsplash and creates Items |
 | `ItemCreateRequest` | Item creation request DTO |
-| `UnsplashPhotoOption` | Unsplash search result DTO |
-| `ItemManagementControllerTest` | Unit tests for item management and callouts |
+| `UnsplashPhotoOption` | Unsplash photo response DTO |
+| `ItemManagementControllerTest` | Item management and callout Unit Tests |
+
+---
 
 ## Data Model
 
 ### Item
 
-API name: `Item__c`
+API name:
 
-| Field | API name | Type |
-|---|---|---|
-| Item Name | `Name` | Text |
-| Description | `Description__c` | Long Text Area |
-| Type | `Type__c` | Picklist |
-| Family | `Family__c` | Picklist |
-| Image | `Image__c` | URL |
-| Price | `Price__c` | Currency |
-| Available Quantity | `AvailableQuantity__c` | Number |
-| Notification Recipient Email | `NotificationRecipientEmail__c` | Email |
-| Image Photographer | `ImagePhotographer__c` | Text |
-| Image Photographer URL | `ImagePhotographerUrl__c` | URL |
-| Image Source URL | `ImageSourceUrl__c` | URL |
+```text
+Item__c
+```
+
+| Field | API Name |
+|---|---|
+| Name | `Name` |
+| Description | `Description__c` |
+| Type | `Type__c` |
+| Family | `Family__c` |
+| Image | `Image__c` |
+| Price | `Price__c` |
+| Available Quantity | `AvailableQuantity__c` |
+| Notification Recipient Email | `NotificationRecipientEmail__c` |
+| Image Photographer | `ImagePhotographer__c` |
+| Image Photographer URL | `ImagePhotographerUrl__c` |
+| Image Source URL | `ImageSourceUrl__c` |
 
 ### Purchase
 
-API name: `Purchase__c`
+API name:
 
-| Field | API name | Type |
-|---|---|---|
-| Purchase Number | `Name` | Auto Number |
-| Client | `ClientId__c` | Lookup to Account |
-| Total Items | `TotalItems__c` | Number |
-| Grand Total | `GrandTotal__c` | Currency |
+```text
+Purchase__c
+```
+
+| Field | API Name |
+|---|---|
+| Purchase Number | `Name` |
+| Client | `ClientId__c` |
+| Total Items | `TotalItems__c` |
+| Grand Total | `GrandTotal__c` |
 
 ### Purchase Line
 
-API name: `PurchaseLine__c`
+API name:
 
-| Field | API name | Type |
-|---|---|---|
-| Purchase Line Number | `Name` | Auto Number |
-| Purchase | `PurchaseId__c` | Master-Detail to Purchase |
-| Item | `ItemId__c` | Master-Detail to Item |
-| Amount | `Amount__c` | Number |
-| Unit Cost | `UnitCost__c` | Currency |
+```text
+PurchaseLine__c
+```
 
-### Inventory Notification Settings
-
-API name: `InventoryNotificationSettings__c`
-
-Type: Hierarchy Custom Setting
-
-| Field | API name |
+| Field | API Name |
 |---|---|
-| Recipient User | `Recipient_User__c` |
-| Recipient Email | `Recipient_Email__c` |
+| Purchase Line Number | `Name` |
+| Purchase | `PurchaseId__c` |
+| Item | `ItemId__c` |
+| Amount | `Amount__c` |
+| Unit Cost | `UnitCost__c` |
 
-### User manager field
+### User
 
-| Field | API name | Type |
-|---|---|---|
-| Is Manager | `User.IsManager__c` | Checkbox |
+| Field | API Name |
+|---|---|
+| Is Manager | `User.IsManager__c` |
 
-## Checkout Transaction
-
-Purchase creation is executed inside Apex as one transaction.
-
-The controller:
-
-1. validates the selected Account;
-2. validates the cart;
-3. aggregates duplicate item lines;
-4. queries the required items;
-5. locks item records with `FOR UPDATE`;
-6. checks prices and available quantities;
-7. creates the Purchase;
-8. creates Purchase Line records;
-9. decreases item stock;
-10. saves the purchase totals;
-11. rolls back all changes when any step fails.
-
-This prevents partial purchases and reduces the risk of multiple users purchasing the same remaining stock at the same time.
+---
 
 ## Security
 
-The application uses several security layers.
+The project uses:
 
-### Sharing
-
-Apex controllers use:
-
-```apex
-with sharing
-```
-
-This respects Salesforce record-sharing rules.
-
-### User-mode database access
-
-Catalogue queries use user-mode database access.
-
-The application also uses user-mode DML where appropriate:
-
-```apex
-insert as user
-update as user
-```
-
-This enforces the current user's object and field permissions.
-
-### Manager validation
-
-Manager functionality is protected in two places:
-
-- the `New Item` button is displayed only to managers;
-- Apex independently verifies `User.IsManager__c`.
-
-A user cannot bypass the server-side check by modifying JavaScript in the browser.
-
-### Permission Set
+- `with sharing`;
+- user-mode SOQL;
+- user-mode DML;
+- server-side manager validation;
+- a dedicated Permission Set;
+- External Credential Principal Access;
+- Named Credential callouts;
+- no API keys in source control;
+- `FOR UPDATE` inventory locking.
 
 Permission Set:
 
@@ -310,188 +418,44 @@ Permission Set:
 Item_Purchase_Tool_User
 ```
 
-It grants access to:
+---
 
-- project custom objects;
-- required custom fields;
-- Apex controllers;
-- the application tab;
-- custom notification permissions;
-- the Unsplash External Credential principal.
+## Installation
 
-## Unsplash Integration
+### Recommended: Install Version 1.1
 
-The application uses Unsplash to search for item photos.
-
-### Components
-
-| Component | API name |
-|---|---|
-| Named Credential | `Unsplash_API` |
-| External Credential | `Unsplash_API_External_Credential` |
-| Principal | `UnsplashPrincipal` |
-| Trusted URL | `Unsplash_Images` |
-| Trusted URL | `Unsplash_Plus_Images` |
-
-The API base URL is:
+Open:
 
 ```text
-https://api.unsplash.com
+https://login.salesforce.com/packaging/installPackage.apexp?p0=04tg7000000GSum
 ```
 
-The Access Key is stored in the External Credential and is not hardcoded in Apex or JavaScript.
-
-Apex performs callouts through:
+Package information:
 
 ```text
-callout:Unsplash_API
+Package Name: Item Purchase Tool
+Version: 1.1
+Package Version ID: 04tg7000000GSum
 ```
 
-When a manager selects a photo, the application:
+The package is unmanaged, so installed metadata can be viewed and modified in the target Salesforce Org.
 
-1. loads the selected photo from Unsplash by ID;
-2. validates the returned URLs;
-3. registers the photo download through `download_location`;
-4. stores the image URL;
-5. stores the photographer name;
-6. stores the photographer profile URL;
-7. stores the original photo URL.
-
-The application displays attribution in the catalogue:
-
-```text
-Photo by [Photographer] on Unsplash
-```
-
-## Record-Triggered Flows
-
-### Item Out of Stock Notification
-
-API name:
-
-```text
-Item_Out_of_Stock_Notification
-```
-
-Runs after an Item update when:
-
-```text
-AvailableQuantity__c = 0
-```
-
-and the value has changed.
-
-Actions:
-
-- send the `Item_Out_of_Stock` custom notification;
-- send the `Out_of_Stock_Item_Alert` email alert.
-
-### Recalculate Purchase Totals on Line Change
-
-API name:
-
-```text
-Recalculate_Purchase_Totals_On_Line_Change
-```
-
-Runs after a Purchase Line is created or updated.
-
-It recalculates:
-
-```text
-Purchase.TotalItems__c
-Purchase.GrandTotal__c
-```
-
-### Recalculate Purchase Totals on Line Delete
-
-API name:
-
-```text
-Recalculate_Purchase_Totals_On_Line_Delete
-```
-
-Runs before a Purchase Line is deleted.
-
-It recalculates the parent Purchase using the remaining Purchase Line records.
-
-## Notifications
-
-### Custom Notification Type
-
-```text
-Item_Out_of_Stock
-```
-
-### Email Alert
-
-```text
-Out_of_Stock_Item_Alert
-```
-
-### Classic Email Template
-
-```text
-Item_Purchase_Tool_Templates/Out_of_Stock_Item_Notification
-```
-
-The template is stored in a public Classic Email Template folder so it can be included in the unmanaged package.
-
-## Project Structure
-
-```text
-force-app/main/default/
-├── applications/
-├── classes/
-├── cspTrustedSites/
-├── customNotificationTypes/
-├── email/
-├── externalCredentials/
-├── flows/
-├── lwc/
-│   ├── itemCreateModal/
-│   └── itemPurchaseTool/
-├── namedCredentials/
-├── objects/
-│   ├── InventoryNotificationSettings__c/
-│   ├── Item__c/
-│   ├── Purchase__c/
-│   ├── PurchaseLine__c/
-│   └── User/
-├── permissionsets/
-├── tabs/
-└── workflows/
-```
-
-## Prerequisites
-
-Install:
-
-- Salesforce CLI;
-- Git;
-- Node.js and npm;
-- Visual Studio Code;
-- Salesforce Extension Pack;
-- Java 21 for the Apex language server.
-
-A Salesforce Developer Edition, sandbox, or scratch org is also required.
-
-## Source Installation
+### Install from Source
 
 Clone the repository:
 
 ```bash
-git clone <repository-url>
-cd saleforce_project
+git clone https://github.com/Temaaaaaa/item-purchase-tool-test.git
+cd item-purchase-tool-test
 ```
 
-Authorize a Salesforce org:
+Authorize an org:
 
 ```bash
 sf org login web --alias item-purchase-org --set-default
 ```
 
-Deploy the metadata:
+Deploy the project:
 
 ```bash
 sf project deploy start \
@@ -508,9 +472,11 @@ sf org assign permset \
   --target-org item-purchase-org
 ```
 
-## Post-Deployment Configuration
+---
 
-### Configure the Unsplash External Credential
+## Post-Installation Configuration
+
+### Unsplash External Credential
 
 Open:
 
@@ -521,7 +487,7 @@ Setup
 → Unsplash API External Credential
 ```
 
-Create or configure the named principal:
+Configure the principal:
 
 ```text
 Principal Name: UnsplashPrincipal
@@ -529,7 +495,7 @@ Identity Type: Named Principal
 Authentication Parameter: AccessKey
 ```
 
-Enter the Unsplash Access Key as the value of `AccessKey`.
+Enter the Unsplash Access Key as the `AccessKey` value.
 
 The authorization header must produce:
 
@@ -537,9 +503,9 @@ The authorization header must produce:
 Authorization: Client-ID YOUR_ACCESS_KEY
 ```
 
-Do not commit the Access Key to Git.
+Do not store the key in Git.
 
-### Grant principal access
+### External Credential Access
 
 Open:
 
@@ -556,7 +522,7 @@ Grant access to:
 Unsplash API External Credential - UnsplashPrincipal
 ```
 
-### Configure notification recipients
+### Notification Settings
 
 Open:
 
@@ -574,73 +540,33 @@ Recipient User
 Recipient Email
 ```
 
-Custom Setting records are org data and are not deployed with metadata.
+Custom Setting records are data and are not included in the package.
 
-### Assign manager access
+### Manager Access
 
-For users who need to create catalogue items, enable:
+For users who need to create Items:
 
-```text
-User.IsManager__c
-```
+1. assign `Item_Purchase_Tool_User`;
+2. enable `User.IsManager__c`.
 
-Also assign the `Item_Purchase_Tool_User` Permission Set.
+### Account Quick Action
 
-## Unmanaged Package
+The package contains the Account Quick Action and Account layout configuration.
 
-Package name:
-
-```text
-Item Purchase Tool
-```
-
-Version:
+After installation, verify that `Item Purchase Tool` is visible in:
 
 ```text
-1.0
+Object Manager
+→ Account
+→ Page Layouts
+→ Salesforce Mobile and Lightning Experience Actions
 ```
 
-Package Version ID:
-
-```text
-04tg7000000GStB
-```
-
-Installation URL:
-
-```text
-https://login.salesforce.com/packaging/installPackage.apexp?p0=04tg7000000GStB
-```
-
-The package is unmanaged. Installed components can be viewed and modified in the target organization.
-
-### Package post-installation steps
-
-After installing the package:
-
-1. enter the Unsplash Access Key in the External Credential;
-2. verify the `UnsplashPrincipal`;
-3. grant External Credential Principal Access;
-4. assign the `Item_Purchase_Tool_User` Permission Set;
-5. populate `Inventory Notification Settings`;
-6. enable `User.IsManager__c` for manager users;
-7. verify that the Item Purchase Tool application and tab are visible;
-8. create test Accounts and catalogue Items if required.
-
-The following values are not included in the package:
-
-- Unsplash Access Key;
-- hierarchy custom setting records;
-- Accounts;
-- Item records;
-- Purchase records;
-- Purchase Line records;
-- Salesforce users;
-- Permission Set assignments.
+---
 
 ## Apex Tests
 
-The project contains the following Apex test classes:
+Test classes:
 
 ```text
 ItemCatalogueControllerTest
@@ -661,93 +587,140 @@ sf apex run test \
   --wait 30
 ```
 
-The test suite covers:
+The tests cover:
 
-- catalogue search and filtering;
-- manager status;
+- catalogue loading;
+- text search;
+- Type and Family filters;
+- manager access;
 - successful checkout;
-- duplicate cart line aggregation;
+- duplicate line aggregation;
 - insufficient stock;
 - transaction rollback;
 - empty cart validation;
+- Item creation;
+- Item creation without a photo;
+- invalid Item requests;
+- non-manager access;
 - Unsplash response mapping;
-- mocked HTTP callouts;
-- manager-only item creation;
-- invalid item requests;
-- item creation with and without a photo.
+- mocked HTTP callouts.
+
+---
 
 ## Manual Verification
 
+### Account Quick Action
+
+1. Open an Account.
+2. Click `Item Purchase Tool`.
+3. Confirm that the application opens in a modal.
+4. Confirm that Account Name, Account Number, and Industry are displayed.
+5. Confirm that the current Account is used as the client.
+
 ### Catalogue
 
-1. Open the Item Purchase Tool application.
-2. Confirm that available items are shown.
-3. Test text search.
-4. Test Type and Family filters.
+1. Search by name or description.
+2. Filter by Type.
+3. Filter by Family.
+4. Confirm that `Listed Items` changes.
+5. Open an Item through `Details`.
 
-### Checkout
+### Cart and Checkout
 
-1. Select an Account.
-2. Add an item to the cart.
-3. Change the quantity.
-4. Create a purchase.
-5. Confirm that Purchase and Purchase Line records were created.
-6. Confirm that item stock decreased.
+1. Click `Add` on an Item.
+2. Confirm that the Cart count changes.
+3. Open the Cart.
+4. Change the quantity.
+5. Remove and add lines.
+6. Click `Checkout`.
+7. Confirm that the Purchase is created.
+8. Confirm that Salesforce opens the created Purchase record.
+9. Confirm that Item stock decreases.
 
-### Out-of-stock automation
+### Manager Item Creation
 
-1. Set an item quantity to a value greater than zero.
-2. Purchase the complete remaining quantity.
-3. Confirm that the quantity becomes zero.
-4. Confirm that the custom notification is received.
-5. Confirm that the email notification is received.
-
-### Manager item creation
-
-1. Open the application as a manager.
+1. Log in as a manager.
 2. Click `New Item`.
-3. Enter item information.
-4. Search for an Unsplash photo.
-5. Select a photo.
-6. Create the item.
-7. Confirm that the new item appears in the catalogue.
-8. Confirm that photo attribution is displayed.
+3. Enter an Item Name.
+4. Confirm that the Unsplash search query uses the Item Name.
+5. Search for photos.
+6. Select a photo.
+7. Create the Item.
+8. Confirm that it appears in the catalogue.
 
-## Important Implementation Decisions
+### Out-of-Stock Automation
 
-### Separate DTO classes
+1. Purchase the complete remaining quantity of an Item.
+2. Confirm that its quantity becomes zero.
+3. Confirm that the Bell Notification is received.
+4. Confirm that the email notification is received.
+5. Confirm that the Item is removed from the catalogue.
 
-Request and response DTOs are implemented as top-level Apex classes because they are passed between Apex and Lightning Web Components.
+---
 
-### Server-side validation
+## Package Data Limitations
 
-All critical validation is performed in Apex. Client-side validation improves the user experience but is not treated as a security boundary.
+The unmanaged package does not include:
 
-### Inventory locking
+- Unsplash Access Key;
+- Hierarchy Custom Setting records;
+- Accounts;
+- Item records;
+- Purchase records;
+- Purchase Line records;
+- Salesforce users;
+- Permission Set assignments.
 
-Items are queried with `FOR UPDATE` during checkout to reduce race conditions and prevent overselling.
+These values must be created or configured in the target Org.
 
-### Named Credential
-
-The Unsplash key is stored in Salesforce configuration instead of source code.
-
-### Flow-based totals
-
-Purchase totals are recalculated through record-triggered flows so they remain correct when Purchase Line records are edited outside the custom checkout interface.
+---
 
 ## Known Limitations
 
-- The unmanaged package does not provide an automatic upgrade path.
-- Org data is not included in the package.
-- External Credential secrets must be configured manually.
-- Hierarchy Custom Setting values must be configured manually.
-- Unsplash availability and API limits depend on the configured Unsplash application.
-- The catalogue displays only items with available quantity greater than zero.
-- LWC Jest tests are not included. Apex business logic is covered by Apex unit tests.
+- LWC Jest tests are not included. Apex business logic is covered by Apex Unit Tests.
+- The application supports Item creation but does not provide a separate Item edit or delete interface.
+- Items with zero available quantity are intentionally hidden from the catalogue.
+- External Credential secrets must be configured after installation.
+- Hierarchy Custom Setting records must be configured after installation.
+- Unsplash search depends on the availability and limits of the configured Unsplash application.
+- Unmanaged packages do not provide an automatic upgrade path.
 
-## Useful Links
+---
 
-- Salesforce Developer Documentation: https://developer.salesforce.com/docs
-- Salesforce Help: https://help.salesforce.com
-- Unsplash API Documentation: https://unsplash.com/documentation
-- Unmanaged Package Installation: https://login.salesforce.com/packaging/installPackage.apexp?p0=04tg7000000GStB
+## Repository Structure
+
+```text
+force-app/main/default/
+├── applications/
+├── classes/
+├── cspTrustedSites/
+├── customNotificationTypes/
+├── email/
+├── externalCredentials/
+├── flows/
+├── layouts/
+├── lwc/
+│   ├── cartModal/
+│   ├── itemCreateModal/
+│   ├── itemDetailsModal/
+│   └── itemPurchaseTool/
+├── namedCredentials/
+├── objects/
+├── permissionsets/
+├── quickActions/
+├── tabs/
+└── workflows/
+```
+
+---
+
+## Links
+
+**GitHub:**
+https://github.com/Temaaaaaa/item-purchase-tool-test
+
+**Current unmanaged package — Version 1.1:**
+https://login.salesforce.com/packaging/installPackage.apexp?p0=04tg7000000GSum
+
+**Previous unmanaged package — Version 1.0:**
+https://login.salesforce.com/packaging/installPackage.apexp?p0=04tg7000000GStB

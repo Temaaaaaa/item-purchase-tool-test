@@ -100,21 +100,22 @@
           </p>
 
           <div class="photo-search">
-              <lightning-input
-                  type="search"
-                  label="Photo Search"
-                  placeholder="For example, laptop"
-                  value={photoSearchTerm}
-                  onchange={handlePhotoSearchTermChange}
-              ></lightning-input>
+            <div class="photo-search-query">
+                <span class="photo-search-label">
+                    Search Query
+                </span>
 
-              <lightning-button
-                  label="Search"
-                  variant="neutral"
-                  disabled={searchDisabled}
-                  onclick={handlePhotoSearch}
-              ></lightning-button>
-          </div>
+                <strong>{photoSearchQuery}</strong>
+            </div>
+
+            <lightning-button
+                label="Search Unsplash"
+                icon-name="utility:search"
+                variant="neutral"
+                disabled={searchDisabled}
+                onclick={handlePhotoSearch}
+            ></lightning-button>
+        </div>
 
           <template lwc:if={isSearchingPhotos}>
               <div class="spinner-container">

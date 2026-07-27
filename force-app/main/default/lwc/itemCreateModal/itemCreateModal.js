@@ -17,7 +17,6 @@ export default class ItemCreateModal extends LightningModal {
         availableQuantity: null
     };
 
-    photoSearchTerm = "";
     photos = [];
     selectedPhotoId = null;
 
@@ -29,10 +28,17 @@ export default class ItemCreateModal extends LightningModal {
         return this.photos.length > 0;
     }
 
+    get photoSearchQuery() {
+        return (
+            this.itemDraft.name?.trim() ||
+            "Enter an item name first."
+        );
+    }
+
     get searchDisabled() {
         return (
             this.isSearchingPhotos ||
-            !this.photoSearchTerm.trim()
+            !this.itemDraft.name?.trim()
         );
     }
 
@@ -53,26 +59,34 @@ export default class ItemCreateModal extends LightningModal {
                     : Number(value);
         }
 
+        const itemNameChanged =
+            fieldName === "name" &&
+            value !== this.itemDraft.name;
+
         this.itemDraft = {
             ...this.itemDraft,
             [fieldName]: value
         };
-    }
 
-    handlePhotoSearchTermChange(event) {
-        this.photoSearchTerm = event.target.value || "";
+        if (itemNameChanged) {
+            this.photos = [];
+            this.selectedPhotoId = null;
+        }
     }
 
     async handlePhotoSearch() {
-        const searchTerm = this.photoSearchTerm.trim();
+        const searchTerm =
+            this.itemDraft.name?.trim();
 
         if (!searchTerm) {
-            this.errorMessage = "Enter a photo search term.";
+            this.errorMessage =
+                "Enter an item name before searching for a photo.";
             return;
         }
 
         this.errorMessage = "";
         this.isSearchingPhotos = true;
+        this.selectedPhotoId = null;
 
         try {
             const result = await searchPhotos({
@@ -89,14 +103,16 @@ export default class ItemCreateModal extends LightningModal {
             }
         } catch (error) {
             this.photos = [];
-            this.errorMessage = this.getErrorMessage(error);
+            this.errorMessage =
+                this.getErrorMessage(error);
         } finally {
             this.isSearchingPhotos = false;
         }
     }
 
     handlePhotoSelect(event) {
-        const photoId = event.currentTarget.dataset.id;
+        const photoId =
+            event.currentTarget.dataset.id;
 
         this.selectedPhotoId =
             this.selectedPhotoId === photoId
@@ -121,7 +137,8 @@ export default class ItemCreateModal extends LightningModal {
             const itemId = await createItem({
                 request: {
                     ...this.itemDraft,
-                    unsplashPhotoId: this.selectedPhotoId
+                    unsplashPhotoId:
+                        this.selectedPhotoId
                 }
             });
 
@@ -130,7 +147,8 @@ export default class ItemCreateModal extends LightningModal {
                 itemId
             });
         } catch (error) {
-            this.errorMessage = this.getErrorMessage(error);
+            this.errorMessage =
+                this.getErrorMessage(error);
         } finally {
             this.isSaving = false;
         }
@@ -152,7 +170,9 @@ export default class ItemCreateModal extends LightningModal {
         return fields.reduce((isValid, field) => {
             field.reportValidity();
 
-            return field.checkValidity() && isValid;
+            return (
+                field.checkValidity() && isValid
+            );
         }, true);
     }
 

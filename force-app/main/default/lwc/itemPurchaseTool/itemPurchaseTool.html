@@ -3,19 +3,90 @@
       title="Item Purchase Tool"
       icon-name="standard:orders"
   >
-      <template lwc:if={isManager}>
-          <div class="toolbar">
+      <template lwc:if={isCheckingOut}>
+          <lightning-spinner
+              alternative-text="Creating purchase"
+              size="medium"
+          ></lightning-spinner>
+      </template>
+
+      <div class="toolbar">
+          <div class="toolbar-actions">
               <lightning-button
-                  label="New Item"
-                  icon-name="utility:add"
-                  variant="brand"
-                  onclick={handleNewItem}
+                  label={cartButtonLabel}
+                  icon-name="utility:cart"
+                  variant="neutral"
+                  disabled={cartButtonDisabled}
+                  onclick={handleOpenCart}
               ></lightning-button>
+
+              <template lwc:if={isManager}>
+                  <lightning-button
+                      label="New Item"
+                      icon-name="utility:add"
+                      variant="brand"
+                      onclick={handleNewItem}
+                  ></lightning-button>
+              </template>
           </div>
+      </div>
+
+      <template lwc:if={hasAccountContext}>
+          <section class="account-summary">
+              <div class="account-field">
+                  <span class="account-label">
+                      Account Name
+                  </span>
+                  <strong>{accountName}</strong>
+              </div>
+
+              <div class="account-field">
+                  <span class="account-label">
+                      Account Number
+                  </span>
+                  <strong>{accountNumber}</strong>
+              </div>
+
+              <div class="account-field">
+                  <span class="account-label">
+                      Industry
+                  </span>
+                  <strong>{accountIndustry}</strong>
+              </div>
+          </section>
       </template>
 
       <div class="page">
           <section class="catalog">
+              <div class="filter-header">
+                  <h2 class="section-heading">
+                      Catalogue
+                  </h2>
+
+                  <span class="item-count">
+                      Listed Items: {listedItemCount}
+                  </span>
+              </div>
+
+              <template lwc:if={hasAccountContext}>
+                  <div class="selected-client">
+                      <span>Client</span>
+                      <strong>{accountName}</strong>
+                  </div>
+              </template>
+
+              <template lwc:else>
+                  <div class="standalone-client">
+                      <lightning-record-picker
+                          label="Client"
+                          placeholder="Search Accounts"
+                          object-api-name="Account"
+                          onchange={handleAccountChange}
+                          required
+                      ></lightning-record-picker>
+                  </div>
+              </template>
+
               <div class="filters">
                   <lightning-input
                       type="search"
@@ -120,12 +191,21 @@
                                               ></lightning-formatted-number>
                                           </strong>
 
-                                          <lightning-button
-                                              label="Add to Cart"
-                                              variant="brand"
-                                              data-id={item.Id}
-                                              onclick={handleAddToCart}
-                                          ></lightning-button>
+                                          <div class="item-actions">
+                                              <lightning-button
+                                                  label="Details"
+                                                  variant="neutral"
+                                                  data-id={item.Id}
+                                                  onclick={handleViewDetails}
+                                              ></lightning-button>
+
+                                              <lightning-button
+                                                  label="Add"
+                                                  variant="brand"
+                                                  data-id={item.Id}
+                                                  onclick={handleAddToCart}
+                                              ></lightning-button>
+                                          </div>
                                       </div>
                                   </div>
                               </article>
@@ -140,105 +220,6 @@
                   </template>
               </div>
           </section>
-
-          <aside class="cart">
-              <h2 class="cart-title">New Purchase</h2>
-
-              <lightning-record-picker
-                  label="Client"
-                  placeholder="Search Accounts"
-                  object-api-name="Account"
-                  onchange={handleAccountChange}
-                  required
-              ></lightning-record-picker>
-
-              <template lwc:if={hasCartItems}>
-                  <div class="cart-lines">
-                      <template
-                          for:each={cartItems}
-                          for:item="line"
-                      >
-                          <div
-                              key={line.itemId}
-                              class="cart-line"
-                          >
-                              <div class="cart-line-header">
-                                  <strong>{line.name}</strong>
-
-                                  <lightning-button-icon
-                                      icon-name="utility:delete"
-                                      alternative-text="Remove"
-                                      title="Remove from Cart"
-                                      variant="bare"
-                                      data-id={line.itemId}
-                                      onclick={handleRemoveFromCart}
-                                  ></lightning-button-icon>
-                              </div>
-
-                              <lightning-input
-                                  type="number"
-                                  label="Quantity"
-                                  min="1"
-                                  max={line.availableQuantity}
-                                  step="1"
-                                  value={line.quantity}
-                                  data-id={line.itemId}
-                                  onchange={handleQuantityChange}
-                              ></lightning-input>
-
-                              <div class="cart-line-total">
-                                  <lightning-formatted-number
-                                      value={line.lineTotal}
-                                      format-style="currency"
-                                      currency-code={currencyCode}
-                                  ></lightning-formatted-number>
-                              </div>
-                          </div>
-                      </template>
-                  </div>
-
-                  <div class="cart-summary">
-                      <div>
-                          <span>Total Items:</span>
-                          <strong>{totalItems}</strong>
-                      </div>
-
-                      <div>
-                          <span>Grand Total:</span>
-
-                          <strong>
-                              <lightning-formatted-number
-                                  value={grandTotal}
-                                  format-style="currency"
-                                  currency-code={currencyCode}
-                              ></lightning-formatted-number>
-                          </strong>
-                      </div>
-                  </div>
-
-                  <lightning-button
-                      class="checkout-button"
-                      label="Create Purchase"
-                      variant="brand"
-                      stretch
-                      disabled={checkoutDisabled}
-                      onclick={handleCheckout}
-                  ></lightning-button>
-              </template>
-
-              <template lwc:else>
-                  <div class="empty-cart">
-                      Your cart is empty.
-                  </div>
-              </template>
-
-              <template lwc:if={isCheckingOut}>
-                  <lightning-spinner
-                      alternative-text="Creating purchase"
-                      size="small"
-                  ></lightning-spinner>
-              </template>
-          </aside>
       </div>
   </lightning-card>
 </template>
