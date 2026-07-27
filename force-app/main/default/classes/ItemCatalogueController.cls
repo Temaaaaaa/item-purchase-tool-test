@@ -7,17 +7,20 @@ public with sharing class ItemCatalogueController {
         String itemFamily
     ) {
         String queryText =
-            'SELECT ' +
-            'Id, ' +
-            'Name, ' +
-            'Description__c, ' +
-            'Type__c, ' +
-            'Family__c, ' +
-            'Image__c, ' +
-            'Price__c, ' +
-            'AvailableQuantity__c ' +
-            'FROM Item__c ' +
-            'WHERE AvailableQuantity__c > 0';
+    'SELECT ' +
+    'Id, ' +
+    'Name, ' +
+    'Description__c, ' +
+    'Type__c, ' +
+    'Family__c, ' +
+    'Image__c, ' +
+    'ImagePhotographer__c, ' +
+    'ImagePhotographerUrl__c, ' +
+    'ImageSourceUrl__c, ' +
+    'Price__c, ' +
+    'AvailableQuantity__c ' +
+    'FROM Item__c ' +
+    'WHERE AvailableQuantity__c > 0';
 
         Map<String, Object> bindValues = new Map<String, Object>();
 

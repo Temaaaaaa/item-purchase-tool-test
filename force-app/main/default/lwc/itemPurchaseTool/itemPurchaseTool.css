@@ -159,6 +159,19 @@
   text-align: center;
 }
 
+.toolbar {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 1rem 0.75rem;
+}
+
+.photo-attribution {
+  padding: 0.4rem 0.75rem;
+  background: #f7f7f7;
+  font-size: 0.7rem;
+  line-height: 1.3;
+}
+
 @media (max-width: 60rem) {
   .page {
       grid-template-columns: 1fr;

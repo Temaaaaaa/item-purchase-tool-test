@@ -4,7 +4,15 @@
         <apexClass>ItemCatalogueController</apexClass>
         <enabled>true</enabled>
     </classAccesses>
+    <classAccesses>
+        <apexClass>ItemManagementController</apexClass>
+        <enabled>true</enabled>
+    </classAccesses>
     <description>Grants access to the Item Purchase Tool objects and fields.</description>
+    <externalCredentialPrincipalAccesses>
+        <enabled>true</enabled>
+        <externalCredentialPrincipal>Unsplash_API_External_Credential-UnsplashPrincipal</externalCredentialPrincipal>
+    </externalCredentialPrincipalAccesses>
     <fieldPermissions>
         <editable>false</editable>
         <field>Account.AccountNumber</field>
@@ -28,6 +36,21 @@
     <fieldPermissions>
         <editable>true</editable>
         <field>Item__c.Family__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Item__c.ImagePhotographerUrl__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Item__c.ImagePhotographer__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Item__c.ImageSourceUrl__c</field>
         <readable>true</readable>
     </fieldPermissions>
     <fieldPermissions>

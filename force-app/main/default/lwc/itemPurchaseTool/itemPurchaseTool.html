@@ -3,6 +3,17 @@
       title="Item Purchase Tool"
       icon-name="standard:orders"
   >
+      <template lwc:if={isManager}>
+          <div class="toolbar">
+              <lightning-button
+                  label="New Item"
+                  icon-name="utility:add"
+                  variant="brand"
+                  onclick={handleNewItem}
+              ></lightning-button>
+          </div>
+      </template>
+
       <div class="page">
           <section class="catalog">
               <div class="filters">
@@ -53,6 +64,32 @@
                                           alt={item.Name}
                                           class="item-image"
                                       />
+                                  </template>
+
+                                  <template
+                                      lwc:if={item.ImagePhotographer__c}
+                                  >
+                                      <div class="photo-attribution">
+                                          Photo by
+
+                                          <a
+                                              href={item.ImagePhotographerUrl__c}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                          >
+                                              {item.ImagePhotographer__c}
+                                          </a>
+
+                                          on
+
+                                          <a
+                                              href={item.ImageSourceUrl__c}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                          >
+                                              Unsplash
+                                          </a>
+                                      </div>
                                   </template>
 
                                   <div class="item-body">

@@ -1,0 +1,201 @@
+<template>
+  <lightning-modal-header
+      label="New Item"
+  ></lightning-modal-header>
+
+  <lightning-modal-body>
+      <template lwc:if={errorMessage}>
+          <div
+              class="slds-notify slds-notify_alert slds-alert_error error-message"
+              role="alert"
+          >
+              <span class="slds-assistive-text">
+                  Error
+              </span>
+
+              <lightning-icon
+                  icon-name="utility:error"
+                  alternative-text="Error"
+                  size="x-small"
+                  variant="inverse"
+              ></lightning-icon>
+
+              <span>{errorMessage}</span>
+          </div>
+      </template>
+
+      <div class="form-grid">
+          <lightning-input
+              data-form-field
+              name="name"
+              type="text"
+              label="Item Name"
+              value={itemDraft.name}
+              max-length="80"
+              required
+              onchange={handleFieldChange}
+          ></lightning-input>
+
+          <lightning-input
+              data-form-field
+              name="price"
+              type="number"
+              label="Price"
+              value={itemDraft.price}
+              min="0.01"
+              step="0.01"
+              required
+              onchange={handleFieldChange}
+          ></lightning-input>
+
+          <lightning-combobox
+              data-form-field
+              name="itemType"
+              label="Type"
+              value={itemDraft.itemType}
+              options={typeOptions}
+              required
+              onchange={handleFieldChange}
+          ></lightning-combobox>
+
+          <lightning-combobox
+              data-form-field
+              name="family"
+              label="Family"
+              value={itemDraft.family}
+              options={familyOptions}
+              required
+              onchange={handleFieldChange}
+          ></lightning-combobox>
+
+          <lightning-input
+              data-form-field
+              name="availableQuantity"
+              type="number"
+              label="Available Quantity"
+              value={itemDraft.availableQuantity}
+              min="0"
+              step="1"
+              required
+              onchange={handleFieldChange}
+          ></lightning-input>
+      </div>
+
+      <lightning-textarea
+          data-form-field
+          name="description"
+          label="Description"
+          value={itemDraft.description}
+          max-length="32768"
+          onchange={handleFieldChange}
+      ></lightning-textarea>
+
+      <section class="photo-section">
+          <h2 class="section-title">
+              Unsplash Photo
+          </h2>
+
+          <p class="section-description">
+              Adding a photo is optional.
+          </p>
+
+          <div class="photo-search">
+              <lightning-input
+                  type="search"
+                  label="Photo Search"
+                  placeholder="For example, laptop"
+                  value={photoSearchTerm}
+                  onchange={handlePhotoSearchTermChange}
+              ></lightning-input>
+
+              <lightning-button
+                  label="Search"
+                  variant="neutral"
+                  disabled={searchDisabled}
+                  onclick={handlePhotoSearch}
+              ></lightning-button>
+          </div>
+
+          <template lwc:if={isSearchingPhotos}>
+              <div class="spinner-container">
+                  <lightning-spinner
+                      alternative-text="Searching Unsplash photos"
+                      size="medium"
+                  ></lightning-spinner>
+              </div>
+          </template>
+
+          <template lwc:elseif={hasPhotos}>
+              <div class="photo-grid">
+                  <template
+                      for:each={photos}
+                      for:item="photo"
+                  >
+                      <article
+                          key={photo.id}
+                          class={photo.cardClass}
+                      >
+                          <button
+                              type="button"
+                              class="photo-select-button"
+                              data-id={photo.id}
+                              title="Select photo"
+                              onclick={handlePhotoSelect}
+                          >
+                              <img
+                                  src={photo.thumbnailUrl}
+                                  alt={photo.altDescription}
+                                  class="photo-image"
+                              />
+
+                              <template lwc:if={photo.isSelected}>
+                                  <span class="selected-badge">
+                                      Selected
+                                  </span>
+                              </template>
+                          </button>
+
+                          <div class="photo-credit">
+                              Photo by
+
+                              <a
+                                  href={photo.photographerUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                              >
+                                  {photo.photographerName}
+                              </a>
+
+                              on
+
+                              <a
+                                  href={photo.photoUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                              >
+                                  Unsplash
+                              </a>
+                          </div>
+                      </article>
+                  </template>
+              </div>
+          </template>
+      </section>
+  </lightning-modal-body>
+
+  <lightning-modal-footer>
+      <lightning-button
+          label="Cancel"
+          disabled={isSaving}
+          onclick={handleCancel}
+      ></lightning-button>
+
+      <lightning-button
+          class="save-button"
+          label="Create Item"
+          variant="brand"
+          disabled={saveDisabled}
+          onclick={handleSave}
+      ></lightning-button>
+  </lightning-modal-footer>
+</template>

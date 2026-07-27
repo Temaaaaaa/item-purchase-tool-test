@@ -2,6 +2,8 @@ import { LightningElement, wire } from "lwc";
 import CURRENCY from "@salesforce/i18n/currency";
 import { ShowToastEvent } from "lightning/platformShowToastEvent";
 import { refreshApex } from "@salesforce/apex";
+import isCurrentUserManager from "@salesforce/apex/ItemCatalogueController.isCurrentUserManager";
+import ItemCreateModal from "c/itemCreateModal";
 
 import getItems from "@salesforce/apex/ItemCatalogueController.getItems";
 import getFilterOptions from "@salesforce/apex/ItemCatalogueController.getFilterOptions";
@@ -9,6 +11,7 @@ import createPurchase from "@salesforce/apex/PurchaseCheckoutController.createPu
 
 export default class ItemPurchaseTool extends LightningElement {
     currencyCode = CURRENCY;
+    isManager = false;
 
     searchTerm = "";
     selectedType = "";
@@ -48,6 +51,18 @@ export default class ItemPurchaseTool extends LightningElement {
             this.showError("Unable to load filters", error);
         }
     }
+
+    @wire(isCurrentUserManager)
+    wiredManagerStatus({ data, error }) {
+    if (data !== undefined) {
+        this.isManager = data;
+    } else if (error) {
+        this.showError(
+            "Unable to determine manager access",
+            error
+        );
+    }
+}
 
     @wire(getItems, {
         searchTerm: "$searchTerm",
@@ -250,6 +265,31 @@ export default class ItemPurchaseTool extends LightningElement {
             this.isCheckingOut = false;
         }
     }
+
+    async handleNewItem() {
+      const result = await ItemCreateModal.open({
+          size: "large",
+          description: "Create a catalogue item",
+          typeOptions: this.typeOptions.filter(
+              (option) => option.value
+          ),
+          familyOptions: this.familyOptions.filter(
+              (option) => option.value
+          )
+      });
+
+      if (!result?.created) {
+          return;
+      }
+
+      await refreshApex(this.wiredItemsResult);
+
+      this.showToast(
+          "Item Created",
+          "The item was created successfully.",
+          "success"
+      );
+  }
 
     createCartLine(item, quantity) {
         return {
