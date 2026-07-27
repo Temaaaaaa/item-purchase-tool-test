@@ -9,6 +9,6 @@
             <type>email</type>
         </recipients>
         <senderType>CurrentUser</senderType>
-        <template>unfiled$public/Out_of_Stock_Item_Notification</template>
+        <template>Item_Purchase_Tool_Templates/Out_of_Stock_Item_Notification</template>
     </alerts>
 </Workflow>
